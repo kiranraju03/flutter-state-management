@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc_state/bloc_pattern/counter_bloc.dart';
+import 'package:flutter_bloc_state/bloc_pattern/counter_event.dart';
 
 void main() {
   runApp(MyApp());
@@ -14,7 +16,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: HomePage(title: 'Local State Management'),
+      home: HomePage(title: 'BLoc State Management from Scratch'),
     );
   }
 }
@@ -31,24 +33,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int count;
+  final CounterBloc _counterBloc = CounterBloc();
 
   @override
-  void initState() {
-    count = 0;
-    super.initState();
-  }
-
-  void increment() {
-    setState(() {
-      count++;
-    });
-  }
-
-  void decrement() {
-    setState(() {
-      count--;
-    });
+  void dispose() {
+    _counterBloc.dispose();
+    super.dispose();
   }
 
   @override
@@ -57,18 +47,28 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(
         appBar: AppBar(),
         body: Center(
-          child: Text('Number: $count'),
+          child: StreamBuilder<Object>(
+            stream: _counterBloc.counter,
+            initialData: 0,
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              return Text('Number: ${snapshot.data}');
+            },
+          ),
         ),
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             FloatingActionButton(
-              onPressed: decrement,
+              onPressed: () => _counterBloc.counterEventSink.add(
+                DecrementEvent(),
+              ),
               child: Icon(Icons.remove),
             ),
             SizedBox(width: 10),
             FloatingActionButton(
-              onPressed: increment,
+              onPressed: () => _counterBloc.counterEventSink.add(
+                IncrementEvent(),
+              ),
               child: Icon(Icons.add),
             )
           ],
